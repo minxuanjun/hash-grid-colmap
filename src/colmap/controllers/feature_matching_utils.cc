@@ -38,6 +38,9 @@
 #include <numeric>
 #include <unordered_set>
 
+//log
+#include <glog/logging.h>
+
 namespace colmap {
 
 FeatureMatcherCache::FeatureMatcherCache(const size_t cache_size,
@@ -231,16 +234,20 @@ void FeatureMatcherWorker::Run() {
       }
 
       if (matching_options_.guided_matching) {
+        LOG(INFO) << "MatchGuided begin";
         matcher->MatchGuided(geometry_options_,
                              GetKeypointsPtr(0, data.image_id1),
                              GetKeypointsPtr(1, data.image_id2),
                              GetDescriptorsPtr(0, data.image_id1),
                              GetDescriptorsPtr(1, data.image_id2),
                              &data.two_view_geometry);
+        LOG(INFO) << "MatchGuided end";
       } else {
+        LOG(INFO) << "Match begin";
         matcher->Match(GetDescriptorsPtr(0, data.image_id1),
                        GetDescriptorsPtr(1, data.image_id2),
                        &data.matches);
+        LOG(INFO) << "Match end";
       }
 
       THROW_CHECK(output_queue_->Push(std::move(data)));
@@ -320,9 +327,22 @@ class VerifierWorker : public Thread {
         const std::vector<Eigen::Vector2d> points2 =
             FeatureKeypointsToPointsVector(*keypoints2);
 
+        //Add check for matches must in range of points1 and points2 size
+        for(const auto& match : data.matches)
+        {
+          THROW_CHECK_LT(match.point2D_idx1, points1.size());
+          THROW_CHECK_LT(match.point2D_idx2, points2.size());
+        }
+
         data.two_view_geometry = EstimateTwoViewGeometry(
             camera1, points1, camera2, points2, data.matches, options_);
 
+        //Add check for inlier matches must in range of points1 and points2 size
+        for(const auto& match : data.two_view_geometry.inlier_matches)
+        {
+          THROW_CHECK_LT(match.point2D_idx1, points1.size());
+          THROW_CHECK_LT(match.point2D_idx2, points2.size());
+        }
         THROW_CHECK(output_queue_->Push(std::move(data)));
       }
     }

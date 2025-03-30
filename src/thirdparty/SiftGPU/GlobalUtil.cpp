@@ -325,6 +325,7 @@ void GlobalUtil::InitGLParam(int NotTargetGL)
     //IF se use CUDA or OpenCL
     if(NotTargetGL && !GlobalUtil::_UseSiftGPUEX)
     {
+        std::cout << "GlobalUtil::_UseSiftGPUEX " << GlobalUtil::_UseSiftGPUEX << std::endl;
         GlobalUtil::_GoodOpenGL = 1;
     }else
     {

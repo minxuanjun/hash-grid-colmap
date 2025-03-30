@@ -663,8 +663,9 @@ class SiftGPUFeatureExtractor : public FeatureExtractor {
       return false;
     }
 
-    const size_t num_features = static_cast<size_t>(sift_gpu_.GetFeatureNum());
-
+//    const size_t num_features = static_cast<size_t>(sift_gpu_.GetFeatureNum());
+//    const auto num_features = std::min(sift_gpu_.GetFeatureNum(), options_.max_num_features);
+    const auto num_features = sift_gpu_.GetFeatureNum();
     keypoints_buffer_.resize(num_features);
 
     FeatureDescriptorsFloat descriptors_float(num_features, 128);
@@ -1242,10 +1243,14 @@ class SiftGPUFeatureMatcher : public FeatureMatcher {
 
 #if defined(COLMAP_CUDA_ENABLED)
     if (gpu_indices[0] >= 0) {
-      matcher->sift_match_gpu_.SetLanguage(
-          SiftMatchGPU::SIFTMATCH_CUDA_DEVICE0 + gpu_indices[0]);
+      //TODO @peng.wang
+      matcher->sift_match_gpu_.SetLanguage(SiftMatchGPU::SIFTMATCH_CANNCUDA);
+//      matcher->sift_match_gpu_.SetLanguage(
+//          SiftMatchGPU::SIFTMATCH_CUDA_DEVICE0 + gpu_indices[0]);
     } else {
-      matcher->sift_match_gpu_.SetLanguage(SiftMatchGPU::SIFTMATCH_CUDA);
+      LOG(INFO) << "creat sift cuda cann match";
+      matcher->sift_match_gpu_.SetLanguage(SiftMatchGPU::SIFTMATCH_CANNCUDA);
+//      matcher->sift_match_gpu_.SetLanguage(SiftMatchGPU::SIFTMATCH_CUDA);
     }
 #else   // COLMAP_CUDA_ENABLED
     matcher->sift_match_gpu_.SetLanguage(SiftMatchGPU::SIFTMATCH_GLSL);
@@ -1447,11 +1452,14 @@ std::unique_ptr<FeatureMatcher> CreateSiftFeatureMatcher(
     const SiftMatchingOptions& options) {
   if (options.use_gpu) {
 #if defined(COLMAP_GPU_ENABLED)
+    LOG(INFO) << "SiftGPUFeatureMatcher::Create(options) begin";
     return SiftGPUFeatureMatcher::Create(options);
 #else
     return nullptr;
 #endif  // COLMAP_GPU_ENABLED
   } else {
+
+    LOG(INFO) << "SiftCPUFeatureMatcher::Create(options) begin";
     return SiftCPUFeatureMatcher::Create(options);
   }
 }

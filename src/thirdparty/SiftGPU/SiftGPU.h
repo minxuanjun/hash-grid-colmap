@@ -64,6 +64,8 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 
+#include <cstddef>
+
 ///////////////////////////////////////////////////////////////////
 //clss SiftParam
 //description: SIFT parameters
@@ -271,8 +273,9 @@ public:
 	enum SIFTMATCH_LANGUAGE	{
 		SIFTMATCH_SAME_AS_SIFTGPU = 0, //when siftgpu already initialized.
 		SIFTMATCH_GLSL = 2,
-		SIFTMATCH_CUDA = 3,
-		SIFTMATCH_CUDA_DEVICE0 = 3 //to use device i, use SIFTMATCH_CUDA_DEVICE0 + i
+		SIFTMATCH_CANNCUDA=3,
+                SIFTMATCH_CUDA = 4,
+		SIFTMATCH_CUDA_DEVICE0 = 4 //to use device i, use SIFTMATCH_CUDA_DEVICE0 + i
 	};
 
   int gpu_index = 0;

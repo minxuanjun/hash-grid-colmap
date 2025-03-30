@@ -39,8 +39,10 @@ using namespace std;
 #if defined(CUDA_SIFTGPU_ENABLED)
 #include "CuTexImage.h"
 #include "SiftMatchCU.h"
+#include "CANNSiftMatch.h"
 #endif
 
+#include <glog/logging.h>
 
 SiftMatchGL::SiftMatchGL(int max_sift, int use_glsl): SiftMatchGPU()
 {
@@ -574,16 +576,27 @@ int SiftMatchGPU::_CreateContextGL()
 
 int SiftMatchGPU::_VerifyContextGL()
 {
-	if(__matcher) return GlobalUtil::_GoodOpenGL;
+    LOG(INFO) << "SiftMatchGPU::_VerifyContextGL begin";
+    if(__matcher) return GlobalUtil::_GoodOpenGL;
 
 #ifdef CUDA_SIFTGPU_ENABLED
 
+    LOG(INFO) << "GlobaUtil::_GoodOpenGL: " << GlobalUtil::_GoodOpenGL << std::endl;
     if(__language >= SIFTMATCH_CUDA) {}
     else if(__language == SIFTMATCH_SAME_AS_SIFTGPU && GlobalUtil::_UseCUDA){}
     else  GlobalUtil::InitGLParam(0);
-    if(GlobalUtil::_GoodOpenGL == 0) __language = SIFTMATCH_CUDA;
+//    if(GlobalUtil::_GoodOpenGL == 0) __language = SIFTMATCH_CUDA; // TODO @peng.wang
 
-    if(((__language == SIFTMATCH_SAME_AS_SIFTGPU && GlobalUtil::_UseCUDA) || __language >= SIFTMATCH_CUDA)
+
+
+  if(__language == SIFTMATCH_CANNCUDA && SiftMatchCU::CheckCudaDevice(GlobalUtil::_DeviceIndex))
+    {
+
+        __language = SIFTMATCH_CANNCUDA;
+        __matcher = ::new SiftMatchCANN(__max_sift);
+        LOG(INFO) << "create SiftMatchCANN";
+    }
+    else if(((__language == SIFTMATCH_SAME_AS_SIFTGPU && GlobalUtil::_UseCUDA) || __language >= SIFTMATCH_CUDA)
         && SiftMatchCU::CheckCudaDevice (GlobalUtil::_DeviceIndex))
     {
 		__language = SIFTMATCH_CUDA;
@@ -607,7 +620,10 @@ int SiftMatchGPU::_VerifyContextGL()
         std::cout   << "[SiftMatchGPU]: " << (__language == SIFTMATCH_CUDA? "CUDA" : "GLSL") <<"\n\n";
 
 	__matcher->InitSiftMatch();
-	return GlobalUtil::_GoodOpenGL;
+        LOG(INFO) << "GlobaUtil::_GoodOpenGL: " << GlobalUtil::_GoodOpenGL << std::endl;
+//	return GlobalUtil::_GoodOpenGL;
+
+        return true;
 }
 
 SiftMatchGPU::SiftMatchGPU(int max_sift)
@@ -622,7 +638,8 @@ void SiftMatchGPU::SetLanguage(int language)
 	if(__matcher) return;
     ////////////////////////
 #ifdef CUDA_SIFTGPU_ENABLED
-	if(language >= SIFTMATCH_CUDA) GlobalUtil::_DeviceIndex = language - SIFTMATCH_CUDA;
+//	if(language >= SIFTMATCH_CUDA) GlobalUtil::_DeviceIndex = language - SIFTMATCH_CUDA;
+        if(language >= SIFTMATCH_CANNCUDA) GlobalUtil::_DeviceIndex = 0;
 #endif
     __language = language > SIFTMATCH_CUDA ? SIFTMATCH_CUDA : language;
 }

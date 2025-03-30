@@ -32,6 +32,8 @@
 #include "colmap/geometry/pose.h"
 #include "colmap/scene/projection.h"
 
+#include <cassert>
+
 namespace colmap {
 namespace {
 

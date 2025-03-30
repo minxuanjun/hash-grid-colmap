@@ -142,6 +142,11 @@ QPixmap DrawMatches(const QPixmap& image1,
   for (const auto& match : matches) {
     const point2D_t idx1 = match.point2D_idx1;
     const point2D_t idx2 = match.point2D_idx2;
+    if(idx1 < 0 || idx1 >= points1.size() || idx2 < 0 || idx2 >= points2.size())
+    {
+      std::cerr << idx1 << "[ " << points1.size() << "] " << idx2 << " ["<< points2.size() << "]" << std::endl;
+      continue;
+    }
     pen.setColor(QColor(0, 255, 0));
     painter.setPen(pen);
     painter.drawLine(QPoint(points1[idx1].x, points1[idx1].y),

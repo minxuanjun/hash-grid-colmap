@@ -1,7 +1,7 @@
 # Custom files
 LocalConfig.cmake
 src/colmap/util/version.cc
-
+cmake-build*
 # Custom directories
 .idea/
 .vscode

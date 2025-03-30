@@ -10,7 +10,17 @@ find_package(Boost ${COLMAP_FIND_TYPE} COMPONENTS
              program_options
              system)
 
-find_package(Eigen3 ${COLMAP_FIND_TYPE})
+find_package(Eigen 3.4  REQUIRED MODULE)
+message(STATUS "Eigen_INCLUDE_DIR: ${EIGEN_INCLUDE_DIR}")
+if(NOT TARGET Eigen3::Eigen)
+    # Create an imported interface library for Eigen3
+    include_directories(${EIGEN_INCLUDE_DIR})
+    message(STATUS "add target Eigen3::Eigen")
+    add_library(Eigen3::Eigen INTERFACE IMPORTED)
+    set_target_properties(Eigen3::Eigen PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${EIGEN_INCLUDE_DIR}")
+endif ()
+
 
 find_package(FreeImage ${COLMAP_FIND_TYPE})
 
